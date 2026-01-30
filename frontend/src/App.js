@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import TarefaList from './components/TarefaList';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback
+} from 'react';
+
 import TarefaForm from './components/TarefaForm';
+import TarefaList from './components/TarefaList';
 import ConfirmDialog from './components/ConfirmDialog';
 import { tarefasAPI } from './services/api';
 import './App.css';
@@ -16,23 +22,12 @@ function App() {
   const [notification, setNotification] = useState(null);
   const [isReordering, setIsReordering] = useState(false);
   const [formClosing, setFormClosing] = useState(false);
-  
+
   const notificationTimeoutRef = useRef(null);
   const reorderTimeoutRef = useRef(null);
 
-  useEffect(() => {
-    carregarTarefas();
-    return () => {
-      if (notificationTimeoutRef.current) {
-        clearTimeout(notificationTimeoutRef.current);
-      }
-      if (reorderTimeoutRef.current) {
-        clearTimeout(reorderTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const carregarTarefas = async () => {
+  // ✅ CORREÇÃO ESLINT
+  const carregarTarefas = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -45,15 +40,28 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    carregarTarefas();
+
+    return () => {
+      if (notificationTimeoutRef.current) {
+        clearTimeout(notificationTimeoutRef.current);
+      }
+      if (reorderTimeoutRef.current) {
+        clearTimeout(reorderTimeoutRef.current);
+      }
+    };
+  }, [carregarTarefas]);
 
   const showNotification = (message, type = 'info', duration = 3000) => {
     if (notificationTimeoutRef.current) {
       clearTimeout(notificationTimeoutRef.current);
     }
-    
+
     setNotification({ message, type });
-    
+
     notificationTimeoutRef.current = setTimeout(() => {
       setNotification(prev => ({ ...prev, hiding: true }));
       setTimeout(() => setNotification(null), 300);
@@ -62,11 +70,11 @@ function App() {
 
   const triggerReorderEffect = () => {
     setIsReordering(true);
-    
+
     if (reorderTimeoutRef.current) {
       clearTimeout(reorderTimeoutRef.current);
     }
-    
+
     reorderTimeoutRef.current = setTimeout(() => {
       setIsReordering(false);
     }, 1500);
@@ -75,10 +83,6 @@ function App() {
   const handleNovaTarefa = () => {
     setEditingTarefa(null);
     setShowForm(true);
-    document.querySelector('.btn-primary')?.classList.add('pulsing');
-    setTimeout(() => {
-      document.querySelector('.btn-primary')?.classList.remove('pulsing');
-    }, 1000);
   };
 
   const handleEditTarefa = (tarefa) => {
@@ -94,13 +98,10 @@ function App() {
   const confirmDelete = async () => {
     try {
       await tarefasAPI.excluir(tarefaToDelete);
-      carregarTarefas();
+      await carregarTarefas();
       setShowConfirmDialog(false);
       setTarefaToDelete(null);
       showNotification('✅ Tarefa excluída com sucesso!', 'success');
-      
-      document.body.classList.add('shake');
-      setTimeout(() => document.body.classList.remove('shake'), 500);
     } catch (error) {
       console.error('Erro ao excluir tarefa:', error);
       showNotification('❌ Erro ao excluir tarefa', 'error');
@@ -116,30 +117,18 @@ function App() {
         await tarefasAPI.criar(formData);
         showNotification('✅ Tarefa criada com sucesso!', 'success');
       }
-      
+
       setFormClosing(true);
       setTimeout(() => {
         setShowForm(false);
         setFormClosing(false);
       }, 300);
-      
+
       carregarTarefas();
     } catch (error) {
       console.error('Erro ao salvar tarefa:', error);
-      const errorMsg = error.response?.data?.error || 'Erro ao salvar tarefa';
-      showNotification(`❌ ${errorMsg}`, 'error');
-      
-      const form = document.querySelector('.form-container');
-      if (form) {
-        form.classList.add('shake');
-        setTimeout(() => form.classList.remove('shake'), 500);
-      }
+      showNotification('❌ Erro ao salvar tarefa', 'error');
     }
-  };
-
-  const handleTarefaReordered = (acao, tarefaNome) => {
-    triggerReorderEffect();
-    showNotification(`↕️ Tarefa "${tarefaNome}" ${acao}`, 'info');
   };
 
   const handleFormCancel = () => {
@@ -162,63 +151,35 @@ function App() {
   return (
     <div className="app">
       {isReordering && <div className="reorder-progress active"></div>}
-      
+
       {notification && (
-        <div className={`reorder-toast ${notification.type} ${notification.hiding ? 'hiding' : ''}`}>
-          <div className="toast-icon">
-            {notification.type === 'success' && '✅'}
-            {notification.type === 'error' && '❌'}
-            {/* {notification.type === 'info' && 'ℹ️'} */}
-          </div>
+        <div className={`reorder-toast ${notification.type}`}>
           <div className="toast-message">{notification.message}</div>
-          <button 
-            className="toast-close"
-            onClick={() => {
-              setNotification(prev => ({ ...prev, hiding: true }));
-              setTimeout(() => setNotification(null), 300);
-            }}
-          >
-            ×
-          </button>
         </div>
       )}
 
       <header className="app-header">
         <h1>📋 Lista de Tarefas</h1>
-        <div className="tasks-counter" title="Total de tarefas">
-          {/* {tarefas.length} */}
-        </div>
       </header>
 
       <main className="app-main">
         {error ? (
           <div className="error-message">
             <p>{error}</p>
-            <button onClick={carregarTarefas} className="btn-retry">
-              🔄 Tentar novamente
-            </button>
+            <button onClick={carregarTarefas}>🔄 Tentar novamente</button>
           </div>
         ) : (
           <>
-            <div className="actions-bar">
-              <button 
-                onClick={handleNovaTarefa} 
-                className="btn-primary"
-                title="Adicionar nova tarefa"
-              >
-                + Nova Tarefa
-              </button>
-            </div>
+            <button onClick={handleNovaTarefa} className="btn-primary">
+              + Nova Tarefa
+            </button>
 
             <TarefaList
               tarefas={tarefas}
               onEdit={handleEditTarefa}
               onDelete={handleDeleteTarefa}
-              onRefresh={() => {
-                carregarTarefas();
-                triggerReorderEffect();
-              }}
-              onReordered={handleTarefaReordered} 
+              onRefresh={carregarTarefas}
+              onReordered={triggerReorderEffect}
             />
           </>
         )}
@@ -239,20 +200,8 @@ function App() {
         title="🗑️ Confirmar Exclusão"
         message="Tem certeza que deseja excluir esta tarefa?"
         onConfirm={confirmDelete}
-        onCancel={() => {
-          setShowConfirmDialog(false);
-          setTarefaToDelete(null);
-        }}
+        onCancel={() => setShowConfirmDialog(false)}
       />
-
-      <footer className="app-footer">
-        <p>Sistema de Lista de Tarefas © {new Date().getFullYear()}</p>
-        <div className="footer-stats">
-          {/* <span>Tarefas: {tarefas.length}</span>
-          <span>•</span>
-          <span>Backend: {process.env.REACT_APP_API_URL ? 'Online' : 'Local'}</span> */}
-        </div>
-      </footer>
     </div>
   );
 }
