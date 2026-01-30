@@ -1,0 +1,241 @@
+/* TarefaList.css */
+
+.tarefa-list-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.tarefa-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.tarefa-header h1 {
+  color: #2c3e50;
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+
+.nova-tarefa-container {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.btn-nova-tarefa {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s;
+}
+
+.btn-nova-tarefa:hover {
+  background-color: #218838;
+}
+
+.tarefa-table-wrapper {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tarefa-table {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-header {
+  display: flex;
+  background-color: #343a40;
+  color: white;
+  font-weight: bold;
+  padding: 15px 0;
+}
+
+.table-header > div {
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+}
+
+.col-ordem {
+  flex: 0.5;
+  min-width: 100px;
+}
+
+.col-nome {
+  flex: 2;
+  min-width: 300px;
+}
+
+.col-custo {
+  flex: 1;
+  min-width: 150px;
+}
+
+.col-data {
+  flex: 1;
+  min-width: 150px;
+}
+
+.col-acoes {
+  flex: 1;
+  min-width: 150px;
+  justify-content: center;
+}
+
+.table-row {
+  display: flex;
+  padding: 15px 0;
+  border-bottom: 1px solid #dee2e6;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.table-row:hover {
+  background-color: #f8f9fa;
+}
+
+.table-row > div {
+  padding: 0 15px;
+}
+
+.destaque-amarelo {
+  background-color: #fff3cd !important;
+  border-left: 4px solid #ffc107;
+}
+
+.ordem-numero {
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #495057;
+}
+
+.reordenar-buttons {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.btn-reordenar {
+  background: none;
+  border: 1px solid #dee2e6;
+  border-radius: 3px;
+  padding: 5px;
+  cursor: pointer;
+  color: #6c757d;
+  transition: all 0.2s;
+}
+
+.btn-reordenar:hover:not(:disabled) {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.btn-reordenar:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.col-acoes {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-edit, .btn-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  font-size: 1.2em;
+}
+
+.btn-edit {
+  color: #007bff;
+}
+
+.btn-edit:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.btn-delete {
+  color: #dc3545;
+}
+
+.btn-delete:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.legenda-container {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
+.legenda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.destaque-amarelo-legenda {
+  width: 20px;
+  height: 20px;
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 3px;
+}
+
+.rodape-tarefas {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #343a40;
+  color: white;
+  border-radius: 8px;
+  text-align: right;
+}
+
+.somatorio {
+  font-size: 1.5em;
+}
+
+.sem-tarefas {
+  text-align: center;
+  padding: 50px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  color: #6c757d;
+  font-size: 1.2em;
+}
+
+@media (max-width: 768px) {
+  .tarefa-list-container {
+    padding: 10px;
+  }
+  
+  .table-header {
+    font-size: 0.9em;
+  }
+  
+  .table-row {
+    font-size: 0.9em;
+  }
+  
+  .col-ordem, .col-custo, .col-data, .col-acoes {
+    min-width: unset;
+  }
+}
