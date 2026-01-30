@@ -1,28 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { FaEdit, FaTrash, FaArrowUp, FaArrowDown, FaPlus } from 'react-icons/fa';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FaEdit, FaTrash, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import { tarefasAPI } from '../services/api';
-import "../styles/TarefaList.css";
+import '../styles/TarefaList.css';
 
-const TarefaList = ({ tarefas, onEdit, onDelete, onRefresh, onReordered, onAdd }) => {
+const TarefaList = ({ tarefas, onEdit, onDelete, onRefresh, onReordered }) => {
   const [somatorio, setSomatorio] = useState(0);
 
-  useEffect(() => {
-    calcularSomatorio();
-  }, [tarefas]);
-
-  const calcularSomatorio = async () => {
+  // ✅ CORREÇÃO ESLINT
+  const calcularSomatorio = useCallback(async () => {
     try {
       const response = await tarefasAPI.somatorioCustos();
       setSomatorio(response.data.total || 0);
     } catch (error) {
       console.error('Erro ao calcular somatório:', error);
-      const totalLocal = tarefas.reduce((sum, tarefa) => sum + (parseFloat(tarefa.custo) || 0), 0);
+      const totalLocal = tarefas.reduce(
+        (sum, tarefa) => sum + (parseFloat(tarefa.custo) || 0),
+        0
+      );
       setSomatorio(totalLocal);
     }
-  };
+  }, [tarefas]);
+
+  useEffect(() => {
+    calcularSomatorio();
+  }, [calcularSomatorio]);
 
   const formatarMoeda = (valor) => {
-    const numero = typeof valor === 'string' ? parseFloat(valor.replace(/[^\d,]/g, '').replace(',', '.')) : valor;
+    const numero =
+      typeof valor === 'string'
+        ? parseFloat(valor.replace(/[^\d,]/g, '').replace(',', '.'))
+        : valor;
+
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
@@ -31,33 +39,23 @@ const TarefaList = ({ tarefas, onEdit, onDelete, onRefresh, onReordered, onAdd }
 
   const formatarData = (dataString) => {
     if (!dataString) return '';
-    if (dataString && dataString.includes('/')) {
-      return dataString;
-    }
-    try {
-      const data = new Date(dataString);
-      if (isNaN(data.getTime())) return dataString;
-      return data.toLocaleDateString('pt-BR');
-    } catch (error) {
-      return dataString;
-    }
+    if (dataString.includes('/')) return dataString;
+
+    const data = new Date(dataString);
+    return isNaN(data.getTime())
+      ? dataString
+      : data.toLocaleDateString('pt-BR');
   };
 
   const handleSubir = async (tarefa) => {
     try {
       const response = await tarefasAPI.subir(tarefa.id);
       if (response.data.message) {
-        if (onReordered) {
-          onReordered('subiu', tarefa.nome);
-        }
+        onReordered?.('subiu', tarefa.nome);
         onRefresh();
       }
     } catch (error) {
-      if (error.response?.status === 400) {
-        alert(error.response.data.error);
-      } else {
-        alert('Erro ao subir tarefa');
-      }
+      alert(error.response?.data?.error || 'Erro ao subir tarefa');
     }
   };
 
@@ -65,32 +63,16 @@ const TarefaList = ({ tarefas, onEdit, onDelete, onRefresh, onReordered, onAdd }
     try {
       const response = await tarefasAPI.descer(tarefa.id);
       if (response.data.message) {
-        if (onReordered) {
-          onReordered('desceu', tarefa.nome);
-        }
+        onReordered?.('desceu', tarefa.nome);
         onRefresh();
       }
     } catch (error) {
-      if (error.response?.status === 400) {
-        alert(error.response.data.error);
-      } else {
-        alert('Erro ao descer tarefa');
-      }
+      alert(error.response?.data?.error || 'Erro ao descer tarefa');
     }
   };
 
   return (
     <div className="tarefa-list-container">
-      {/* <div className="tarefa-header">
-        <h1>Lista de Tarefas</h1>
-      </div> */}
-
-      <div className="nova-tarefa-container">
-        {/* <button onClick={onAdd} className="btn-nova-tarefa">
-          <FaPlus /> Nova Tarefa
-        </button> */}
-      </div>
-
       {tarefas.length === 0 ? (
         <div className="sem-tarefas">
           <p>Nenhuma tarefa cadastrada. Clique em "Nova Tarefa" para começar.</p>
@@ -108,18 +90,29 @@ const TarefaList = ({ tarefas, onEdit, onDelete, onRefresh, onReordered, onAdd }
               </div>
 
               {tarefas
-                .sort((a, b) => (a.ordem_apresentacao || a.ordem || 0) - (b.ordem_apresentacao || b.ordem || 0))
+                .sort(
+                  (a, b) =>
+                    (a.ordem_apresentacao || a.ordem || 0) -
+                    (b.ordem_apresentacao || b.ordem || 0)
+                )
                 .map((tarefa) => (
                   <div
                     key={tarefa.id}
-                    className={`table-row ${tarefa.custo >= 1000 ? 'destaque-amarelo' : ''}`}
+                    className={`table-row ${
+                      tarefa.custo >= 1000 ? 'destaque-amarelo' : ''
+                    }`}
                   >
                     <div className="col-ordem">
-                      <div className="ordem-numero">{tarefa.ordem_apresentacao || tarefa.ordem || 1}</div>
+                      <div className="ordem-numero">
+                        {tarefa.ordem_apresentacao || tarefa.ordem || 1}
+                      </div>
                       <div className="reordenar-buttons">
                         <button
                           onClick={() => handleSubir(tarefa)}
-                          disabled={tarefa.ordem_apresentacao === 1 || tarefa.ordem === 1}
+                          disabled={
+                            tarefa.ordem_apresentacao === 1 ||
+                            tarefa.ordem === 1
+                          }
                           className="btn-reordenar"
                           title="Subir"
                         >
@@ -127,7 +120,10 @@ const TarefaList = ({ tarefas, onEdit, onDelete, onRefresh, onReordered, onAdd }
                         </button>
                         <button
                           onClick={() => handleDescer(tarefa)}
-                          disabled={tarefa.ordem_apresentacao === tarefas.length || tarefa.ordem === tarefas.length}
+                          disabled={
+                            tarefa.ordem_apresentacao === tarefas.length ||
+                            tarefa.ordem === tarefas.length
+                          }
                           className="btn-reordenar"
                           title="Descer"
                         >
@@ -135,9 +131,16 @@ const TarefaList = ({ tarefas, onEdit, onDelete, onRefresh, onReordered, onAdd }
                         </button>
                       </div>
                     </div>
-                    <div className="col-nome">{tarefa.nome || tarefa.nome_tarefa || 'Sem nome'}</div>
-                    <div className="col-custo">{formatarMoeda(tarefa.custo)}</div>
-                    <div className="col-data">{formatarData(tarefa.data_limite)}</div>
+
+                    <div className="col-nome">
+                      {tarefa.nome || tarefa.nome_tarefa || 'Sem nome'}
+                    </div>
+                    <div className="col-custo">
+                      {formatarMoeda(tarefa.custo)}
+                    </div>
+                    <div className="col-data">
+                      {formatarData(tarefa.data_limite)}
+                    </div>
                     <div className="col-acoes">
                       <button
                         onClick={() => onEdit(tarefa)}
