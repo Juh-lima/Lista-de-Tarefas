@@ -200,4 +200,5 @@ router.get('/soma/custos', async (req, res) => {
   }
 });
 
+
 module.exports = router;
