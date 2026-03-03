@@ -222,6 +222,27 @@
   font-size: 1.2em;
 }
 
+
+.table-header > div,
+.table-row > div {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.col-nome {
+  white-space: normal;
+}
+
+.col-custo {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.col-data {
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .tarefa-list-container {
     padding: 10px;
