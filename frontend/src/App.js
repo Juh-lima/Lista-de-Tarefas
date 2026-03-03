@@ -127,7 +127,12 @@ function App() {
       carregarTarefas();
     } catch (error) {
       console.error('Erro ao salvar tarefa:', error);
-      showNotification('❌ Erro ao salvar tarefa', 'error');
+      const mensagemErro =
+        error.response?.data?.error ||
+        error.response?.data?.erro ||
+        'Erro ao salvar tarefa';
+
+      showNotification(`❌ ${mensagemErro}`, 'error');
     }
   };
 

@@ -11,9 +11,27 @@ function formatarData(dataStr) {
 function validarData(dataStr) {
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   if (!dataStr.match(regex)) return false;
-  
+
   const date = new Date(dataStr);
   return date instanceof Date && !isNaN(date);
+}
+
+function validarCusto(custo) {
+  const custoNumero = Number(custo);
+
+  if (!Number.isFinite(custoNumero)) {
+    return 'Custo inválido';
+  }
+
+  if (custoNumero <= 0) {
+    return 'Custo deve ser maior que zero';
+  }
+
+  if (custoNumero > 9999999999999999) {
+    return 'Custo deve ter no máximo 16 dígitos';
+  }
+
+  return null;
 }
 
 router.get('/', async (req, res) => {
@@ -35,12 +53,13 @@ router.post('/', async (req, res) => {
   try {
     const { nome, custo, data_limite } = req.body;
     
-    if (!nome || !custo || !data_limite) {
+    if (!nome || custo === undefined || custo === null || !data_limite) {
       return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
     }
-    
-    if (custo < 0) {
-      return res.status(400).json({ error: 'Custo não pode ser negativo' });
+
+    const erroCusto = validarCusto(custo);
+    if (erroCusto) {
+      return res.status(400).json({ error: erroCusto });
     }
     
     if (!validarData(data_limite)) {
@@ -54,7 +73,7 @@ router.post('/', async (req, res) => {
     
     const novaTarefa = await Tarefa.criar({
       nome,
-      custo: parseFloat(custo),
+      custo: Number(custo),
       data_limite
     });
     
@@ -72,12 +91,13 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { nome, custo, data_limite } = req.body;
     
-    if (!nome || custo === undefined || !data_limite) {
+    if (!nome || custo === undefined || custo === null || !data_limite) {
       return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
     }
     
-    if (custo < 0) {
-      return res.status(400).json({ error: 'Custo não pode ser negativo' });
+    const erroCusto = validarCusto(custo);
+    if (erroCusto) {
+      return res.status(400).json({ error: erroCusto });
     }
     
     if (!validarData(data_limite)) {
@@ -96,7 +116,7 @@ router.put('/:id', async (req, res) => {
     
     const tarefaAtualizada = await Tarefa.atualizar(id, {
       nome,
-      custo: parseFloat(custo),
+      custo: Number(custo),
       data_limite
     });
     
